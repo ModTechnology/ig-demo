@@ -59,7 +59,7 @@
   }
 
   if (contentWrap) {
-    var tables = contentWrap.querySelectorAll('table:not(.colsi)');
+    var tables = contentWrap.querySelectorAll('table:not(.colsi):not(.colsd)');
     for (var t = 0; t < tables.length; t++) {
       if (tables[t].parentNode) {
         var w = document.createElement('div');
