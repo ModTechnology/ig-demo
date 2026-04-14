@@ -311,6 +311,7 @@ a .glyphicon-share,
 #segment-content {
   padding-top: 20px;
   padding-bottom: 40px;
+  min-height: calc(100vh - 200px);
 }
 
 #segment-content .container {
@@ -533,12 +534,6 @@ table.colsi td span.copy-text, table.colsd td span.copy-text {
 }
 
 .sidebar-page-toc {
-  background: none !important;
-  border: none !important;
-  float: none !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
   font-size: 13px;
 }
 
@@ -559,13 +554,16 @@ table.colsi td span.copy-text, table.colsd td span.copy-text {
   text-decoration: none;
   font-size: 13px;
   border-radius: 4px;
-  border-left: 2px solid transparent;
 }
 
 .sidebar-page-toc a:hover {
   color: #016BB6 !important;
-  border-left-color: #016BB6;
   background-color: rgba(1, 107, 182, 0.06);
+}
+
+.sidebar-page-toc a.toc-active {
+  color: #016BB6 !important;
+  font-weight: 600;
 }
 
 
@@ -592,12 +590,10 @@ table.colsi td span.copy-text, table.colsd td span.copy-text {
 }
 
 .sidebar-toc-section {
-  flex-shrink: 1;
+  position: fixed;
+  bottom: 20px;
   max-height: 35vh;
   overflow-y: auto;
-  border-top: 1px solid #e8e8e8;
-  margin-top: 8px;
-  padding-top: 4px;
 }
 
 .sidebar-list, .sidebar-list ul {
@@ -628,7 +624,7 @@ table.colsi td span.copy-text, table.colsd td span.copy-text {
 .sidebar-list a.active {
   color: #016BB6;
   font-weight: 700;
-  background-color: transparent;
+  background-color: #F4F8FF;
 }
 
 /* Enfants masqués par défaut, visibles si groupe actif */

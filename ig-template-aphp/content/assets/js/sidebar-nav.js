@@ -26,15 +26,28 @@
       }
     }
 
+    // Trouver les groupes dont le parent est artifacts.html (trop de sous-pages)
+    var artifactsGroups = {};
+    var depth0Items = sidebarList.querySelectorAll('.sidebar-depth-0');
+    for (var d = 0; d < depth0Items.length; d++) {
+      var a = depth0Items[d].querySelector('a');
+      if (a && a.getAttribute('href') === 'artifacts.html') {
+        artifactsGroups[depth0Items[d].getAttribute('data-group')] = true;
+      }
+    }
+
     var currentPath = sidebarList.getAttribute('data-current-path');
     var links = sidebarList.querySelectorAll('a');
     for (var j = 0; j < links.length; j++) {
       if (links[j].getAttribute('href') === currentPath) {
         links[j].classList.add('active');
         var group = links[j].parentElement.getAttribute('data-group');
-        var children = sidebarList.querySelectorAll('.sidebar-child[data-group="' + group + '"]');
-        for (var k = 0; k < children.length; k++) {
-          children[k].setAttribute('data-open', 'true');
+        // Ne pas ouvrir les enfants du groupe Artifacts (trop nombreux)
+        if (!artifactsGroups[group]) {
+          var children = sidebarList.querySelectorAll('.sidebar-child[data-group="' + group + '"]');
+          for (var k = 0; k < children.length; k++) {
+            children[k].setAttribute('data-open', 'true');
+          }
         }
         break;
       }
@@ -101,6 +114,7 @@
   }
 
   if (navToggle) {
+    
     navToggle.addEventListener('click', function() {
       sidebarWrapper.classList.contains('open') ? closeDrawer() : openDrawer();
     });
@@ -111,12 +125,11 @@
   }
 
 
-  /* --- Table des matières (TOC) — construite depuis les h2/h3/h4 --- */
+  /* --- Table des matières (TOC) --- */
 
   var sidebarNav = document.getElementById('sidebar-nav');
   var innerContent = document.querySelector('#content-wrapper > .inner-wrapper');
   if (sidebarNav && innerContent) {
-    // Masquer la TOC du publisher si présente
     var origToc = document.querySelector('.markdown-toc');
     if (origToc) origToc.style.display = 'none';
 
@@ -144,9 +157,11 @@
       tocNav.className = 'sidebar-page-toc';
       var tocUl = document.createElement('ul');
 
+      var skippedFirstH2 = false;
       for (var m = 0; m < headings.length; m++) {
         var heading = headings[m];
         var tag = heading.tagName.toLowerCase();
+        if (tag === 'h2' && !skippedFirstH2) { skippedFirstH2 = true; continue; }
         var text = heading.textContent.replace(/^\s*[\d.]+\s*/, '').trim();
         if (!text) continue;
 
@@ -162,23 +177,66 @@
       }
 
       tocNav.appendChild(tocUl);
+
+      // Ne pas afficher la TOC si elle est vide
+      if (tocUl.children.length === 0) return;
+
       tocWrap.appendChild(tocNav);
       tocSection.appendChild(tocWrap);
-      sidebarNav.appendChild(tocSection);
+
+      // TOC fixed en bas à gauche, alignée avec le sidebar
+      var sidebarWrap = document.getElementById('sidebar-wrapper');
+      sidebarWrap.appendChild(tocSection);
+
+      var footer = document.getElementById('segment-footer');
+
+      function positionToc() {
+        var swRect = sidebarWrap.getBoundingClientRect();
+        tocSection.style.left = swRect.left + 'px';
+        tocSection.style.width = swRect.width + 'px';
+
+        // Remonter la TOC au-dessus du footer
+        if (footer) {
+          var footerTop = footer.getBoundingClientRect().top;
+          var distanceFromBottom = window.innerHeight - footerTop;
+          if (distanceFromBottom > 0) {
+            tocSection.style.bottom = (distanceFromBottom + 10) + 'px';
+          } else {
+            tocSection.style.bottom = '20px';
+          }
+        }
+      }
+      positionToc();
+      window.addEventListener('resize', positionToc);
+      window.addEventListener('scroll', positionToc);
+
+      // Scroll spy
+      var tocAllLinks = tocUl.querySelectorAll('a');
+      var spyHeadings = [];
+      for (var s = 0; s < tocAllLinks.length; s++) {
+        var id = tocAllLinks[s].getAttribute('href');
+        if (id) spyHeadings.push({ link: tocAllLinks[s], target: document.querySelector(id) });
+      }
+
+      var ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            var current = null;
+            for (var s = 0; s < spyHeadings.length; s++) {
+              if (spyHeadings[s].target && spyHeadings[s].target.getBoundingClientRect().top <= 100) {
+                current = spyHeadings[s].link;
+              }
+            }
+            for (var s = 0; s < tocAllLinks.length; s++) {
+              tocAllLinks[s].classList.remove('toc-active');
+            }
+            if (current) current.classList.add('toc-active');
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
     }
   }
-
-
-  /* --- Hauteurs sidebar --- */
-
-  var sNavEl = document.getElementById('sidebar-nav');
-  var sListEl = document.getElementById('sidebar-list');
-  var sTocEl = sNavEl ? sNavEl.querySelector('.sidebar-toc-section') : null;
-  if (sNavEl && sListEl && sTocEl) {
-    var availH = window.innerHeight - 70;
-    sListEl.style.maxHeight = Math.floor(availH * 0.6) + 'px';
-    sListEl.style.overflowY = 'auto';
-    sTocEl.style.maxHeight = Math.floor(availH * 0.4) + 'px';
-  }
-
 })();
