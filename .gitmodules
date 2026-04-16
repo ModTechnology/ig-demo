@@ -1,0 +1,3 @@
+[submodule "ig-template-aphp"]
+	path = ig-template-aphp
+	url = https://github.com/ModTechnology/ig-template-aphp-v2.git
